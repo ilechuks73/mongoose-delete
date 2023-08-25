@@ -7,7 +7,7 @@ var mongoose = require('mongoose'),
  * This code is taken from official mongoose repository
  * https://github.com/Automattic/mongoose/blob/master/lib/query.js#L3847-L3873
  */
-function parseUpdateArguments (conditions, doc, options, callback) {
+function parseUpdateArguments(conditions, doc, options, callback) {
     if ('function' === typeof options) {
         // .update(conditions, doc, callback)
         callback = options;
@@ -42,7 +42,7 @@ function parseUpdateArguments (conditions, doc, options, callback) {
     return args;
 }
 
-function parseIndexFields (options) {
+function parseIndexFields(options) {
     var indexFields = {
         deleted: false,
         deletedAt: false,
@@ -57,7 +57,7 @@ function parseIndexFields (options) {
         indexFields.deleted = indexFields.deletedAt = indexFields.deletedBy = true;
     }
 
-    if (typeof(options.indexFields) === "boolean" && options.indexFields === true) {
+    if (typeof (options.indexFields) === "boolean" && options.indexFields === true) {
         indexFields.deleted = indexFields.deletedAt = indexFields.deletedBy = true;
     }
 
@@ -70,13 +70,13 @@ function parseIndexFields (options) {
     return indexFields;
 }
 
-function createSchemaObject (typeKey, typeValue, options) {
+function createSchemaObject(typeKey, typeValue, options) {
     options[typeKey] = typeValue;
     return options;
 }
 
 module.exports = function (schema, options) {
-    options = options || {};
+    options = { indexFieldMapping: { deleted: "deleted", deletedAt: "deletedAt", deletedBy: "deletedBy" }, ...options } || { indexFieldMapping: { deleted: "deleted", deletedAt: "deletedAt", deletedBy: "deletedBy" } };
     var indexFields = parseIndexFields(options);
 
     var typeKey = schema.options.typeKey;
@@ -92,14 +92,14 @@ module.exports = function (schema, options) {
         }
     }
 
-    schema.add({ deleted: createSchemaObject(typeKey, Boolean, { default: false, index: indexFields.deleted }) });
+    schema.add({ [options.indexFieldMapping.deleted]: createSchemaObject(typeKey, Boolean, { default: false, index: indexFields.deleted }) });
 
     if (options.deletedAt === true) {
-        schema.add({ deletedAt: createSchemaObject(typeKey, Date, { index: indexFields.deletedAt }) });
+        schema.add({ [options.indexFieldMapping.deletedAt]: createSchemaObject(typeKey, Date, { index: indexFields.deletedAt }) });
     }
 
     if (options.deletedBy === true) {
-        schema.add({ deletedBy: createSchemaObject(typeKey, options.deletedByType || Schema.Types.ObjectId, { index: indexFields.deletedBy }) });
+        schema.add({ [options.indexFieldMapping.deletedBy]: createSchemaObject(typeKey, options.deletedByType || Schema.Types.ObjectId, { index: indexFields.deletedBy }) });
     }
 
     var use$neOperator = true;
@@ -108,8 +108,8 @@ module.exports = function (schema, options) {
     }
 
     schema.pre('save', function (next) {
-        if (!this.deleted) {
-            this.deleted = false;
+        if (!this[options.indexFieldMapping.deleted]) {
+            this[options.indexFieldMapping.deleted] = false;
         }
         next();
     });
@@ -123,12 +123,12 @@ module.exports = function (schema, options) {
             finalList = overridableMethods;
         }
 
-        if (typeof(overrideItems) === "boolean" && overrideItems === true) {
+        if (typeof (overrideItems) === "boolean" && overrideItems === true) {
             finalList = overridableMethods;
         }
 
         if (Array.isArray(overrideItems)) {
-            overrideItems.forEach(function(method) {
+            overrideItems.forEach(function (method) {
                 if (overridableMethods.indexOf(method) > -1) {
                     finalList.push(method);
                 }
@@ -136,24 +136,26 @@ module.exports = function (schema, options) {
         }
 
         if (finalList.indexOf('aggregate') > -1) {
-            schema.pre('aggregate', function() {
+            schema.pre('aggregate', function () {
                 var firstMatch = this.pipeline()[0];
 
-                if(firstMatch.$match?.deleted?.$ne !== false){
-                    if(firstMatch.$match?.showAllDocuments === 'true'){
-                        var {showAllDocuments, ...replacement} = firstMatch.$match;
+                if (
+                    firstMatch.$match?.[options.indexFieldMapping.deleted]?.$ne !== false
+                ) {
+                    if (firstMatch.$match?.showAllDocuments === 'true') {
+                        var { showAllDocuments, ...replacement } = firstMatch.$match;
                         this.pipeline().shift();
-                        if(Object.keys(replacement).length > 0){
+                        if (Object.keys(replacement).length > 0) {
                             this.pipeline().unshift({ $match: replacement });
                         }
-                    }else{
-                        this.pipeline().unshift({ $match: { deleted: { '$ne': true } } });
+                    } else {
+                        this.pipeline().unshift({ $match: { [options.indexFieldMapping.deleted]: { '$ne': true } } });
                     }
                 }
             });
         }
 
-        finalList.forEach(function(method) {
+        finalList.forEach(function (method) {
             if (['count', 'countDocuments', 'find', 'findOne'].indexOf(method) > -1) {
                 var modelMethodName = method;
 
@@ -161,18 +163,18 @@ module.exports = function (schema, options) {
                     var query = Model[modelMethodName].apply(this, arguments);
                     if (!arguments[2] || arguments[2].withDeleted !== true) {
                         if (use$neOperator) {
-                            query.where('deleted').ne(true);
+                            query.where(options.indexFieldMapping.deleted).ne(true);
                         } else {
-                            query.where({deleted: false});
+                            query.where({ [options.indexFieldMapping.deleted]: false });
                         }
                     }
                     return query;
                 };
                 schema.statics[method + 'Deleted'] = function () {
                     if (use$neOperator) {
-                        return Model[modelMethodName].apply(this, arguments).where('deleted').ne(false);
+                        return Model[modelMethodName].apply(this, arguments).where(options.indexFieldMapping.deleted).ne(false);
                     } else {
-                        return Model[modelMethodName].apply(this, arguments).where({deleted: true});
+                        return Model[modelMethodName].apply(this, arguments).where({ [options.indexFieldMapping.deleted]: true });
                     }
                 };
                 schema.statics[method + 'WithDeleted'] = function () {
@@ -183,7 +185,7 @@ module.exports = function (schema, options) {
                     schema.statics[method + 'Deleted'] = function () {
                         var args = [];
                         Array.prototype.push.apply(args, arguments);
-                        var match = { $match : { deleted : {'$ne': false } } };
+                        var match = { $match: { [options.indexFieldMapping.deleted]: { '$ne': false } } };
                         arguments.length ? args[0].unshift(match) : args.push([match]);
                         return Model[method].apply(this, args);
                     };
@@ -191,7 +193,7 @@ module.exports = function (schema, options) {
                     schema.statics[method + 'WithDeleted'] = function () {
                         var args = [];
                         Array.prototype.push.apply(args, arguments);
-                        var match = { $match : { showAllDocuments : 'true' } };
+                        var match = { $match: { showAllDocuments: 'true' } };
                         arguments.length ? args[0].unshift(match) : args.push([match]);
                         return Model[method].apply(this, args);
                     };
@@ -200,9 +202,11 @@ module.exports = function (schema, options) {
                         var args = parseUpdateArguments.apply(undefined, arguments);
 
                         if (use$neOperator) {
-                            args[0].deleted = {'$ne': true};
+
+                            args[0][options.indexFieldMapping.deleted] = { '$ne': true };
                         } else {
-                            args[0].deleted = false;
+
+                            args[0][options.indexFieldMapping.deleted] = false;
                         }
 
                         return Model[method].apply(this, args);
@@ -212,9 +216,9 @@ module.exports = function (schema, options) {
                         var args = parseUpdateArguments.apply(undefined, arguments);
 
                         if (use$neOperator) {
-                            args[0].deleted = {'$ne': false};
+                            args[0][options.indexFieldMapping.deleted] = { '$ne': false };
                         } else {
-                            args[0].deleted = true;
+                            args[0][options.indexFieldMapping.deleted] = true;
                         }
 
                         return Model[method].apply(this, args);
@@ -230,18 +234,18 @@ module.exports = function (schema, options) {
 
     schema.methods.delete = function (deletedBy, cb) {
         if (typeof deletedBy === 'function') {
-          cb = deletedBy;
-          deletedBy = null;
+            cb = deletedBy;
+            deletedBy = null;
         }
 
-        this.deleted = true;
+        this[options.indexFieldMapping.deleted] = true;
 
-        if (schema.path('deletedAt')) {
-            this.deletedAt = new Date();
+        if (schema.path(options.indexFieldMapping.deletedAt)) {
+            this[options.indexFieldMapping.deletedAt] = new Date();
         }
 
-        if (schema.path('deletedBy')) {
-            this.deletedBy = deletedBy;
+        if (schema.path(options.indexFieldMapping.deletedBy)) {
+            this[options.indexFieldMapping.deletedBy] = deletedBy;
         }
 
         if (options.validateBeforeDelete === false) {
@@ -251,7 +255,7 @@ module.exports = function (schema, options) {
         return this.save(cb);
     };
 
-    schema.statics.delete =  function (conditions, deletedBy, callback) {
+    schema.statics.delete = function (conditions, deletedBy, callback) {
         if (typeof deletedBy === 'function') {
             callback = deletedBy;
             conditions = conditions;
@@ -263,21 +267,21 @@ module.exports = function (schema, options) {
         }
 
         var doc = {
-            deleted: true
+            [options.indexFieldMapping.deleted]: true
         };
 
-        if (schema.path('deletedAt')) {
-            doc.deletedAt = new Date();
+        if (schema.path(options.indexFieldMapping.deletedAt)) {
+            doc[options.indexFieldMapping.deletedAt] = new Date();
         }
 
-        if (schema.path('deletedBy')) {
-            doc.deletedBy = deletedBy;
+        if (schema.path(options.indexFieldMapping.deletedBy)) {
+            doc[options.indexFieldMapping.deletedBy] = deletedBy;
         }
 
         return updateDocumentsByQuery(this, conditions, doc, callback);
     };
 
-    schema.statics.deleteById =  function (id, deletedBy, callback) {
+    schema.statics.deleteById = function (id, deletedBy, callback) {
         if (arguments.length === 0 || typeof id === 'function') {
             var msg = 'First argument is mandatory and must not be a function.';
             throw new TypeError(msg);
@@ -291,7 +295,7 @@ module.exports = function (schema, options) {
     };
 
     schema.methods.restore = function (callback) {
-        this.deleted = false;
+        this[options.indexFieldMapping.deleted] = false;
         this.deletedAt = undefined;
         this.deletedBy = undefined;
 
@@ -302,17 +306,17 @@ module.exports = function (schema, options) {
         return this.save(callback);
     };
 
-    schema.statics.restore =  function (conditions, callback) {
+    schema.statics.restore = function (conditions, callback) {
         if (typeof conditions === 'function') {
             callback = conditions;
             conditions = {};
         }
 
         var doc = {
-            $unset:{
-                deleted: true,
-                deletedAt: true,
-                deletedBy: true
+            $unset: {
+                [options.indexFieldMapping.deleted]: true,
+                [options.indexFieldMapping.deletedAt]: true,
+                [options.indexFieldMapping.deletedBy]: true
             }
         };
 

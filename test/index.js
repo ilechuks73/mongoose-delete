@@ -46,21 +46,21 @@ chai.use(function (_chai, utils) {
 });
 
 before(async function () {
-    await mongoose.connect(process.env.MONGOOSE_TEST_URI || 'mongodb://localhost/test', {useNewUrlParser: true, useUnifiedTopology: true});
+    await mongoose.connect(process.env.MONGOOSE_TEST_URI || 'mongodb://localhost/test', { useNewUrlParser: true, useUnifiedTopology: true });
 });
 
 after(async function () {
-    await mongoose.connection.db.dropDatabase();
-    await mongoose.disconnect();
+    mongoose.connection.db.dropDatabase()
+    await mongoose.connection.close();
 });
 
 describe("mongoose_delete delete method without callback function", function () {
-    var Test1Schema = new Schema({name: String}, {collection: 'mongoose_delete_test0'});
+    var Test1Schema = new Schema({ name: String }, { collection: 'mongoose_delete_test0' });
     Test1Schema.plugin(mongoose_delete);
     var Test0 = mongoose.model('Test0', Test1Schema);
 
     before(async function () {
-        var puffy = new Test0({name: 'Puffy'});
+        var puffy = new Test0({ name: 'Puffy' });
         await puffy.save();
     });
 
@@ -70,18 +70,18 @@ describe("mongoose_delete delete method without callback function", function () 
 
     it("delete() -> should return a thenable (Promise)", function () {
         return Test0.findOne({ name: 'Puffy' })
-          .then(function (puffy) {
-              expect(puffy.delete()).to.have.property('then');
-          })
-          .catch(function (err) {
-              should.not.exist(err);
-          });
+            .then(function (puffy) {
+                expect(puffy.delete()).to.have.property('then');
+            })
+            .catch(function (err) {
+                should.not.exist(err);
+            });
     });
 });
 
 describe("mongoose_delete plugin without options", function () {
 
-    var Test1Schema = new Schema({name: String}, {collection: 'mongoose_delete_test1'});
+    var Test1Schema = new Schema({ name: String }, { collection: 'mongoose_delete_test1' });
     Test1Schema.plugin(mongoose_delete);
     var Test1 = mongoose.model('Test1', Test1Schema);
 
@@ -90,10 +90,10 @@ describe("mongoose_delete plugin without options", function () {
 
     beforeEach(async function () {
         const created = await Test1.create(
-          [
-              { name: 'Puffy1'},
-              { name: 'Puffy2'}
-          ]
+            [
+                { name: 'Puffy1' },
+                { name: 'Puffy2' }
+            ]
         );
 
         puffy1 = { ...created[0]._doc };
@@ -160,7 +160,7 @@ describe("mongoose_delete plugin without options", function () {
 });
 
 describe("mongoose_delete plugin without options, using option: typeKey", function () {
-    var Test1Schema = new Schema({name: String}, {collection: 'mongoose_delete_test1', typeKey: '$type'});
+    var Test1Schema = new Schema({ name: String }, { collection: 'mongoose_delete_test1', typeKey: '$type' });
     Test1Schema.plugin(mongoose_delete);
     var Test1 = mongoose.model('Test1a', Test1Schema);
 
@@ -169,11 +169,11 @@ describe("mongoose_delete plugin without options, using option: typeKey", functi
 
     beforeEach(async function () {
         const created = await Test1.create(
-          [
-              { name: 'Puffy1' },
-              { name: 'Puffy2' },
-              { name: 'Puffy3', deleted: true }
-          ]
+            [
+                { name: 'Puffy1' },
+                { name: 'Puffy2' },
+                { name: 'Puffy3', deleted: true }
+            ]
         );
 
         puffy1 = { ...created[0]._doc };
@@ -196,7 +196,7 @@ describe("mongoose_delete plugin without options, using option: typeKey", functi
 
     it("delete() -> should not save 'deletedAt' value", async function () {
         try {
-            const puffy = await Test1.findOne({name: 'Puffy1'});
+            const puffy = await Test1.findOne({ name: 'Puffy1' });
             const success = await puffy.delete();
             should.not.exist(success.deletedAt);
         } catch (err) {
@@ -210,7 +210,7 @@ describe("mongoose_delete plugin without options, using option: typeKey", functi
             expect(documents).to.be.mongoose_ok();
             expect(documents).to.be.mongoose_count(1);
 
-            const doc = await Test1.findOne({name: 'Puffy2'});
+            const doc = await Test1.findOne({ name: 'Puffy2' });
             doc.deleted.should.equal(true);
             should.not.exist(doc.deletedAt);
         } catch (err) {
@@ -231,7 +231,7 @@ describe("mongoose_delete plugin without options, using option: typeKey", functi
 });
 
 describe("mongoose_delete with options: { deletedAt : true }", function () {
-    var Test2Schema = new Schema({name: String}, {collection: 'mongoose_delete_test2'});
+    var Test2Schema = new Schema({ name: String }, { collection: 'mongoose_delete_test2' });
     Test2Schema.plugin(mongoose_delete, { deletedAt: true });
     var Test2 = mongoose.model('Test2', Test2Schema);
 
@@ -240,11 +240,11 @@ describe("mongoose_delete with options: { deletedAt : true }", function () {
 
     beforeEach(async function () {
         const created = await Test2.create(
-          [
-              { name: 'Puffy1' },
-              { name: 'Puffy2' },
-              { name: 'Puffy3', deleted: true }
-          ]
+            [
+                { name: 'Puffy1' },
+                { name: 'Puffy2' },
+                { name: 'Puffy3', deleted: true }
+            ]
         );
 
         puffy1 = { ...created[0]._doc };
@@ -257,7 +257,7 @@ describe("mongoose_delete with options: { deletedAt : true }", function () {
 
     it("delete() -> should save 'deletedAt' key", async function () {
         try {
-            const puffy = await Test2.findOne({name: 'Puffy1'});
+            const puffy = await Test2.findOne({ name: 'Puffy1' });
             const success = await puffy.delete();
             should.exist(success.deletedAt);
         } catch (err) {
@@ -272,7 +272,7 @@ describe("mongoose_delete with options: { deletedAt : true }", function () {
             expect(documents).to.be.mongoose_ok();
             expect(documents).to.be.mongoose_count(1);
 
-            const doc = await Test2.findOne({name: 'Puffy2'})
+            const doc = await Test2.findOne({ name: 'Puffy2' })
             doc.deleted.should.equal(true);
             should.exist(doc.deletedAt);
         } catch (err) {
@@ -293,8 +293,8 @@ describe("mongoose_delete with options: { deletedAt : true }", function () {
 });
 
 describe("mongoose_delete with options: { deletedAt : true }, using option: typeKey", function () {
-    var Test2Schema = new Schema({name: String}, {collection: 'mongoose_delete_test2', typeKey: '$type'});
-    Test2Schema.plugin(mongoose_delete, {deletedAt: true});
+    var Test2Schema = new Schema({ name: String }, { collection: 'mongoose_delete_test2', typeKey: '$type' });
+    Test2Schema.plugin(mongoose_delete, { deletedAt: true });
     var Test2 = mongoose.model('Test2a', Test2Schema);
 
     var puffy1 = null;
@@ -302,11 +302,11 @@ describe("mongoose_delete with options: { deletedAt : true }, using option: type
 
     beforeEach(async function () {
         const created = await Test2.create(
-          [
-              { name: 'Puffy1' },
-              { name: 'Puffy2' },
-              { name: 'Puffy3', deleted: true }
-          ]
+            [
+                { name: 'Puffy1' },
+                { name: 'Puffy2' },
+                { name: 'Puffy3', deleted: true }
+            ]
         );
 
         puffy1 = { ...created[0]._doc };
@@ -319,7 +319,7 @@ describe("mongoose_delete with options: { deletedAt : true }, using option: type
 
     it("delete() -> should save 'deletedAt' key", async function () {
         try {
-            const puffy = await Test2.findOne({name: 'Puffy1'});
+            const puffy = await Test2.findOne({ name: 'Puffy1' });
             const success = await puffy.delete();
             should.exist(success.deletedAt);
         } catch (err) {
@@ -334,7 +334,7 @@ describe("mongoose_delete with options: { deletedAt : true }, using option: type
             expect(documents).to.be.mongoose_ok();
             expect(documents).to.be.mongoose_count(1);
 
-            const doc = await Test2.findOne({name: 'Puffy2'});
+            const doc = await Test2.findOne({ name: 'Puffy2' });
             doc.deleted.should.equal(true);
             should.exist(doc.deletedAt);
         } catch (err) {
@@ -344,7 +344,7 @@ describe("mongoose_delete with options: { deletedAt : true }, using option: type
 
     it("restore() -> should set deleted:false and delete deletedAt key", async function () {
         try {
-            const puffy = await Test2.findOne({name: 'Puffy1'});
+            const puffy = await Test2.findOne({ name: 'Puffy1' });
             const success = await puffy.restore();
             success.deleted.should.equal(false);
             should.not.exist(success.deletedAt);
@@ -356,7 +356,7 @@ describe("mongoose_delete with options: { deletedAt : true }, using option: type
 
 describe("mongoose_delete with options: { deletedBy : true }", function () {
 
-    var Test3Schema = new Schema({name: String}, {collection: 'mongoose_delete_test3'});
+    var Test3Schema = new Schema({ name: String }, { collection: 'mongoose_delete_test3' });
     Test3Schema.plugin(mongoose_delete, { deletedBy: true });
     var Test3 = mongoose.model('Test3', Test3Schema);
 
@@ -365,11 +365,11 @@ describe("mongoose_delete with options: { deletedBy : true }", function () {
 
     beforeEach(async function () {
         const created = await Test3.create(
-          [
-              { name: 'Puffy1' },
-              { name: 'Puffy2' },
-              { name: 'Puffy3', deleted: true, deletedBy: "53da93b16b4a6670076b16bf" }
-          ]
+            [
+                { name: 'Puffy1' },
+                { name: 'Puffy2' },
+                { name: 'Puffy3', deleted: true, deletedBy: "53da93b16b4a6670076b16bf" }
+            ]
         );
 
         puffy1 = { ...created[0]._doc };
@@ -399,7 +399,7 @@ describe("mongoose_delete with options: { deletedBy : true }", function () {
             expect(documents).to.be.mongoose_ok();
             expect(documents).to.be.mongoose_count(1);
 
-            const doc = await Test3.findOne({name: 'Puffy2'});
+            const doc = await Test3.findOne({ name: 'Puffy2' });
             doc.deleted.should.equal(true);
             doc.deletedBy.toString().should.equal(userId.toString());
         } catch (err) {
@@ -421,8 +421,8 @@ describe("mongoose_delete with options: { deletedBy : true }", function () {
 
 describe("mongoose_delete with options: { deletedBy : true }, using option: typeKey", function () {
 
-    var Test3Schema = new Schema({name: String}, {collection: 'mongoose_delete_test3', typeKey: '$type'});
-    Test3Schema.plugin(mongoose_delete, {deletedBy: true});
+    var Test3Schema = new Schema({ name: String }, { collection: 'mongoose_delete_test3', typeKey: '$type' });
+    Test3Schema.plugin(mongoose_delete, { deletedBy: true });
     var Test3 = mongoose.model('Test3a', Test3Schema);
 
     var puffy1 = null;
@@ -430,11 +430,11 @@ describe("mongoose_delete with options: { deletedBy : true }, using option: type
 
     beforeEach(async function () {
         const created = await Test3.create(
-          [
-              { name: 'Puffy1' },
-              { name: 'Puffy2' },
-              { name: 'Puffy3', deleted: true, deletedBy: "53da93b16b4a6670076b16bf" }
-          ]
+            [
+                { name: 'Puffy1' },
+                { name: 'Puffy2' },
+                { name: 'Puffy3', deleted: true, deletedBy: "53da93b16b4a6670076b16bf" }
+            ]
         );
 
         puffy1 = { ...created[0]._doc };
@@ -449,7 +449,7 @@ describe("mongoose_delete with options: { deletedBy : true }, using option: type
 
     it("delete() -> should save `deletedBy` key", async function () {
         try {
-            const puffy = await Test3.findOne({name: 'Puffy1'});
+            const puffy = await Test3.findOne({ name: 'Puffy1' });
             const success = await puffy.delete(userId);
             success.deletedBy.should.equal(userId);
         } catch (err) {
@@ -464,7 +464,7 @@ describe("mongoose_delete with options: { deletedBy : true }, using option: type
             expect(documents).to.be.mongoose_ok();
             expect(documents).to.be.mongoose_count(1);
 
-            const doc = await Test3.findOne({name: 'Puffy2'});
+            const doc = await Test3.findOne({ name: 'Puffy2' });
             doc.deleted.should.equal(true);
             doc.deletedBy.toString().should.equal(userId.toString());
         } catch (err) {
@@ -474,7 +474,7 @@ describe("mongoose_delete with options: { deletedBy : true }, using option: type
 
     it("restore() -> should set deleted:false and delete deletedBy key", async function () {
         try {
-            const puffy = await Test3.findOne({name: 'Puffy3'});
+            const puffy = await Test3.findOne({ name: 'Puffy3' });
             const success = await puffy.restore();
             success.deleted.should.equal(false);
             should.not.exist(success.deletedBy);
@@ -486,7 +486,7 @@ describe("mongoose_delete with options: { deletedBy : true }, using option: type
 
 describe("mongoose_delete with options: { deletedBy : true, deletedByType: String }", function () {
 
-    var TestSchema = new Schema({name: String}, {collection: 'mongoose_delete_test'});
+    var TestSchema = new Schema({ name: String }, { collection: 'mongoose_delete_test' });
     TestSchema.plugin(mongoose_delete, { deletedBy: true, deletedByType: String });
     var Test = mongoose.model('TestDeletedByType', TestSchema);
 
@@ -495,11 +495,11 @@ describe("mongoose_delete with options: { deletedBy : true, deletedByType: Strin
 
     beforeEach(async function () {
         const created = await Test.create(
-          [
-              { name: 'Puffy1' },
-              { name: 'Puffy2' },
-              { name: 'Puffy3', deleted: true, deletedBy: "custom_user_id_12345678" }
-          ]
+            [
+                { name: 'Puffy1' },
+                { name: 'Puffy2' },
+                { name: 'Puffy3', deleted: true, deletedBy: "custom_user_id_12345678" }
+            ]
         );
 
         puffy1 = { ...created[0]._doc };
@@ -514,7 +514,7 @@ describe("mongoose_delete with options: { deletedBy : true, deletedByType: Strin
 
     it("delete() -> should save deletedBy key", async function () {
         try {
-            const puffy = await Test.findOne({name: 'Puffy1'});
+            const puffy = await Test.findOne({ name: 'Puffy1' });
             const success = await puffy.delete(userIdCustom);
             success.deletedBy.should.equal(userIdCustom);
         } catch (err) {
@@ -529,7 +529,7 @@ describe("mongoose_delete with options: { deletedBy : true, deletedByType: Strin
             expect(documents).to.be.mongoose_ok();
             expect(documents).to.be.mongoose_count(1);
 
-            const doc = await Test.findOne({name: 'Puffy2'});
+            const doc = await Test.findOne({ name: 'Puffy2' });
             doc.deleted.should.equal(true);
             doc.deletedBy.should.equal(userIdCustom);
         } catch (err) {
@@ -550,17 +550,17 @@ describe("mongoose_delete with options: { deletedBy : true, deletedByType: Strin
 });
 
 describe("check not overridden static methods", function () {
-    var TestSchema = new Schema({name: String}, { collection: 'mongoose_delete_test' });
+    var TestSchema = new Schema({ name: String }, { collection: 'mongoose_delete_test' });
     TestSchema.plugin(mongoose_delete);
     var TestModel = mongoose.model('Test4', TestSchema);
 
     beforeEach(async function () {
         await TestModel.create(
-          [
-              { name: 'Obi-Wan Kenobi', deleted: true },
-              { name: 'Darth Vader'},
-              { name: 'Luke Skywalker'}
-          ]
+            [
+                { name: 'Obi-Wan Kenobi', deleted: true },
+                { name: 'Darth Vader' },
+                { name: 'Luke Skywalker' }
+            ]
         );
     });
 
@@ -598,7 +598,7 @@ describe("check not overridden static methods", function () {
 
     it("findOne() -> should return 1 deleted document", async function () {
         try {
-            const doc = await TestModel.findOne({name: 'Obi-Wan Kenobi'});
+            const doc = await TestModel.findOne({ name: 'Obi-Wan Kenobi' });
             expect(doc).not.to.be.null;
             doc.deleted.should.equal(true);
         } catch (err) {
@@ -608,7 +608,7 @@ describe("check not overridden static methods", function () {
 
     it("findOneAndUpdate() -> should find and update deleted document", async function () {
         try {
-            const doc = await TestModel.findOneAndUpdate({name: 'Obi-Wan Kenobi'}, {name: 'Obi-Wan Kenobi Test'}, {new: true})
+            const doc = await TestModel.findOneAndUpdate({ name: 'Obi-Wan Kenobi' }, { name: 'Obi-Wan Kenobi Test' }, { new: true })
             expect(doc).not.to.be.null;
             doc.name.should.equal('Obi-Wan Kenobi Test');
         } catch (err) {
@@ -618,7 +618,7 @@ describe("check not overridden static methods", function () {
 
     it("updateOne() -> should find and update deleted document", async function () {
         try {
-            const doc = await TestModel.updateOne({name: 'Obi-Wan Kenobi'}, {name: 'Obi-Wan Kenobi Test'}, {});
+            const doc = await TestModel.updateOne({ name: 'Obi-Wan Kenobi' }, { name: 'Obi-Wan Kenobi Test' }, {});
             expect(doc).to.be.mongoose_ok();
             expect(doc).to.be.mongoose_count(1);
         } catch (err) {
@@ -628,7 +628,7 @@ describe("check not overridden static methods", function () {
 
     it("updateOne() -> should find and update not deleted document", async function () {
         try {
-            const doc = await TestModel.updateOne({name: 'Darth Vader'}, {name: 'Darth Vader Test'});
+            const doc = await TestModel.updateOne({ name: 'Darth Vader' }, { name: 'Darth Vader Test' });
             expect(doc).to.be.mongoose_ok();
             expect(doc).to.be.mongoose_count(1);
         } catch (err) {
@@ -638,7 +638,7 @@ describe("check not overridden static methods", function () {
 
     it("updateOne() -> should insert new document", async function () {
         try {
-            const doc = await TestModel.updateOne({name: 'Obi-Wan Kenobi Upsert'}, {name: 'Obi-Wan Kenobi Upsert Test'}, { upsert: true })
+            const doc = await TestModel.updateOne({ name: 'Obi-Wan Kenobi Upsert' }, { name: 'Obi-Wan Kenobi Upsert Test' }, { upsert: true })
 
             expect(doc).to.be.mongoose_ok();
 
@@ -660,7 +660,7 @@ describe("check not overridden static methods", function () {
 
     it("updateMany() -> should update deleted document", async function () {
         try {
-            const doc = await TestModel.updateMany({name: 'Obi-Wan Kenobi'}, {name: 'Obi-Wan Kenobi Test'});
+            const doc = await TestModel.updateMany({ name: 'Obi-Wan Kenobi' }, { name: 'Obi-Wan Kenobi Test' });
             expect(doc).to.be.mongoose_ok();
             expect(doc).to.be.mongoose_count(1);
         } catch (err) {
@@ -670,17 +670,17 @@ describe("check not overridden static methods", function () {
 });
 
 describe("check overridden static methods: { overrideMethods: 'all' }", function () {
-    var TestSchema = new Schema({name: String}, {collection: 'mongoose_delete_test'});
-    TestSchema.plugin(mongoose_delete, {overrideMethods: 'all'});
+    var TestSchema = new Schema({ name: String }, { collection: 'mongoose_delete_test' });
+    TestSchema.plugin(mongoose_delete, { overrideMethods: 'all' });
     var TestModel = mongoose.model('Test5', TestSchema);
 
     beforeEach(async function () {
         await TestModel.create(
-          [
-              {name: 'Obi-Wan Kenobi', deleted: true},
-              {name: 'Darth Vader'},
-              {name: 'Luke Skywalker', deleted: true}
-          ]);
+            [
+                { name: 'Obi-Wan Kenobi', deleted: true },
+                { name: 'Darth Vader' },
+                { name: 'Luke Skywalker', deleted: true }
+            ]);
     });
 
     afterEach(async function () {
@@ -743,7 +743,7 @@ describe("check overridden static methods: { overrideMethods: 'all' }", function
 
     it("findOne() -> should not return 1 deleted document", async function () {
         try {
-            const doc = await TestModel.findOne({name: 'Obi-Wan Kenobi'});
+            const doc = await TestModel.findOne({ name: 'Obi-Wan Kenobi' });
             expect(doc).to.be.null;
         } catch (err) {
             should.not.exist(err);
@@ -752,7 +752,7 @@ describe("check overridden static methods: { overrideMethods: 'all' }", function
 
     it("findOneDeleted() -> should return 1 deleted document", async function () {
         try {
-            const doc = await TestModel.findOneDeleted({name: 'Obi-Wan Kenobi'});
+            const doc = await TestModel.findOneDeleted({ name: 'Obi-Wan Kenobi' });
             expect(doc).not.to.be.null;
         } catch (err) {
             should.not.exist(err);
@@ -761,7 +761,7 @@ describe("check overridden static methods: { overrideMethods: 'all' }", function
 
     it("findOneWithDeleted() -> should return 1 deleted document", async function () {
         try {
-            const doc = await TestModel.findOneWithDeleted({name: 'Obi-Wan Kenobi'});
+            const doc = await TestModel.findOneWithDeleted({ name: 'Obi-Wan Kenobi' });
             expect(doc).not.to.be.null;
         } catch (err) {
             should.not.exist(err);
@@ -770,7 +770,7 @@ describe("check overridden static methods: { overrideMethods: 'all' }", function
 
     it("findOneWithDeleted() -> should return 1 not deleted document", async function () {
         try {
-            const doc = await TestModel.findOneWithDeleted({name: 'Darth Vader'});
+            const doc = await TestModel.findOneWithDeleted({ name: 'Darth Vader' });
             expect(doc).not.to.be.null;
         } catch (err) {
             should.not.exist(err);
@@ -779,7 +779,7 @@ describe("check overridden static methods: { overrideMethods: 'all' }", function
 
     it("findOneAndUpdate() -> should not find and update deleted document", async function () {
         try {
-            const doc = await TestModel.findOneAndUpdate({name: 'Obi-Wan Kenobi'}, {name: 'Obi-Wan Kenobi Test'}, {new: true});
+            const doc = await TestModel.findOneAndUpdate({ name: 'Obi-Wan Kenobi' }, { name: 'Obi-Wan Kenobi Test' }, { new: true });
             expect(doc).to.be.null;
         } catch (err) {
             should.not.exist(err);
@@ -788,7 +788,7 @@ describe("check overridden static methods: { overrideMethods: 'all' }", function
 
     it("findOneAndUpdateDeleted() -> should find and update deleted document", async function () {
         try {
-            const doc = await TestModel.findOneAndUpdateDeleted({name: 'Obi-Wan Kenobi'}, {name: 'Obi-Wan Kenobi Test'}, {new: true});
+            const doc = await TestModel.findOneAndUpdateDeleted({ name: 'Obi-Wan Kenobi' }, { name: 'Obi-Wan Kenobi Test' }, { new: true });
             expect(doc).not.to.be.null;
         } catch (err) {
             should.not.exist(err);
@@ -797,7 +797,7 @@ describe("check overridden static methods: { overrideMethods: 'all' }", function
 
     it("findOneAndUpdateWithDeleted() -> should find and update deleted document", async function () {
         try {
-            const doc = await TestModel.findOneAndUpdateWithDeleted({name: 'Obi-Wan Kenobi'}, {name: 'Obi-Wan Kenobi Test'}, {new: true});
+            const doc = await TestModel.findOneAndUpdateWithDeleted({ name: 'Obi-Wan Kenobi' }, { name: 'Obi-Wan Kenobi Test' }, { new: true });
             expect(doc).not.to.be.null;
         } catch (err) {
             should.not.exist(err);
@@ -806,7 +806,7 @@ describe("check overridden static methods: { overrideMethods: 'all' }", function
 
     it("findOneAndUpdateWithDeleted() -> should find and update not deleted document", async function () {
         try {
-            const doc = await TestModel.findOneAndUpdateWithDeleted({name: 'Darth Vader'}, {name: 'Darth Vader Test'}, {new: true});
+            const doc = await TestModel.findOneAndUpdateWithDeleted({ name: 'Darth Vader' }, { name: 'Darth Vader Test' }, { new: true });
             expect(doc).not.to.be.null;
         } catch (err) {
             should.not.exist(err);
@@ -815,7 +815,7 @@ describe("check overridden static methods: { overrideMethods: 'all' }", function
 
     it("updateOne(conditions, update, options, callback) -> should not update first deleted document", async function () {
         try {
-            const doc = await TestModel.updateOne({name: 'Luke Skywalker'}, {name: 'Luke Skywalker Test'}, {});
+            const doc = await TestModel.updateOne({ name: 'Luke Skywalker' }, { name: 'Luke Skywalker Test' }, {});
             expect(doc).to.be.mongoose_ok();
             expect(doc).to.be.mongoose_count(0);
         } catch (err) {
@@ -825,7 +825,7 @@ describe("check overridden static methods: { overrideMethods: 'all' }", function
 
     it("updateOne(conditions, update, options, callback) -> should insert new document", async function () {
         try {
-            const doc = await TestModel.updateOne({name: 'Luke Skywalker'}, {name: 'Luke Skywalker'}, {upsert: true});
+            const doc = await TestModel.updateOne({ name: 'Luke Skywalker' }, { name: 'Luke Skywalker' }, { upsert: true });
 
             expect(doc).to.be.mongoose_ok();
 
@@ -845,7 +845,7 @@ describe("check overridden static methods: { overrideMethods: 'all' }", function
 
     it("updateMany(conditions, update, options, callback) -> should not update deleted documents", async function () {
         try {
-            const doc = await TestModel.updateMany({}, {name: 'Luke Skywalker Test'}, {multi: true});
+            const doc = await TestModel.updateMany({}, { name: 'Luke Skywalker Test' }, { multi: true });
             expect(doc).to.be.mongoose_ok();
             expect(doc).to.be.mongoose_count(1);
         } catch (err) {
@@ -855,7 +855,7 @@ describe("check overridden static methods: { overrideMethods: 'all' }", function
 
     it("updateOne(conditions, update, options) -> should not update first deleted document", async function () {
         try {
-            const doc = await TestModel.updateOne({name: 'Luke Skywalker'}, {name: 'Luke Skywalker Test'}, {});
+            const doc = await TestModel.updateOne({ name: 'Luke Skywalker' }, { name: 'Luke Skywalker Test' }, {});
             expect(doc).to.be.mongoose_ok();
             expect(doc).to.be.mongoose_count(0);
         } catch (err) {
@@ -865,7 +865,7 @@ describe("check overridden static methods: { overrideMethods: 'all' }", function
 
     it("updateOne(conditions, update, options) -> should insert new document", async function () {
         try {
-            const doc = await TestModel.updateOne({name: 'Luke Skywalker'}, {name: 'Luke Skywalker Test'}, {upsert: true});
+            const doc = await TestModel.updateOne({ name: 'Luke Skywalker' }, { name: 'Luke Skywalker Test' }, { upsert: true });
 
             expect(doc).to.be.mongoose_ok();
 
@@ -885,7 +885,7 @@ describe("check overridden static methods: { overrideMethods: 'all' }", function
 
     it("updateMany(conditions, update, options) -> should not update deleted documents", async function () {
         try {
-            const doc = await TestModel.updateMany({}, {name: 'Luke Skywalker Test'}, {multi: true});
+            const doc = await TestModel.updateMany({}, { name: 'Luke Skywalker Test' }, { multi: true });
             expect(doc).to.be.mongoose_ok();
             expect(doc).to.be.mongoose_count(1);
         } catch (err) {
@@ -895,7 +895,7 @@ describe("check overridden static methods: { overrideMethods: 'all' }", function
 
     it("updateOne(conditions, update, callback) -> should not update first deleted document", async function () {
         try {
-            const doc = await TestModel.updateOne({name: 'Luke Skywalker'}, {name: 'Luke Skywalker Test'});
+            const doc = await TestModel.updateOne({ name: 'Luke Skywalker' }, { name: 'Luke Skywalker Test' });
             expect(doc).to.be.mongoose_ok();
             expect(doc).to.be.mongoose_count(0);
         } catch (err) {
@@ -905,7 +905,7 @@ describe("check overridden static methods: { overrideMethods: 'all' }", function
 
     it("updateMany(conditions, update, callback) -> should not update deleted documents", async function () {
         try {
-            const doc = await TestModel.updateMany({}, {name: 'Luke Skywalker Test'});
+            const doc = await TestModel.updateMany({}, { name: 'Luke Skywalker Test' });
             expect(doc).to.be.mongoose_ok();
             expect(doc).to.be.mongoose_count(1);
         } catch (err) {
@@ -915,7 +915,7 @@ describe("check overridden static methods: { overrideMethods: 'all' }", function
 
     it("updateOne(conditions, update) -> should not update first deleted document", async function () {
         try {
-            const doc = await TestModel.updateOne({name: 'Luke Skywalker'}, {name: 'Luke Skywalker Test'}, {});
+            const doc = await TestModel.updateOne({ name: 'Luke Skywalker' }, { name: 'Luke Skywalker Test' }, {});
             expect(doc).to.be.mongoose_ok();
             expect(doc).to.be.mongoose_count(0);
         } catch (err) {
@@ -925,7 +925,7 @@ describe("check overridden static methods: { overrideMethods: 'all' }", function
 
     it("updateMany(conditions, update) -> should not update deleted documents", async function () {
         try {
-            const doc = await TestModel.updateMany({}, {name: 'Luke Skywalker Test'});
+            const doc = await TestModel.updateMany({}, { name: 'Luke Skywalker Test' });
             expect(doc).to.be.mongoose_ok();
             expect(doc).to.be.mongoose_count(1);
         } catch (err) {
@@ -935,7 +935,7 @@ describe("check overridden static methods: { overrideMethods: 'all' }", function
 
     it("updateOneDeleted(conditions, update, options, callback) -> should update first deleted document", async function () {
         try {
-            const doc = await TestModel.updateOneDeleted({name: 'Luke Skywalker'}, {name: 'Luke Skywalker Test'}, {});
+            const doc = await TestModel.updateOneDeleted({ name: 'Luke Skywalker' }, { name: 'Luke Skywalker Test' }, {});
 
             expect(doc).to.be.mongoose_ok();
             expect(doc).to.be.mongoose_count(1);
@@ -946,7 +946,7 @@ describe("check overridden static methods: { overrideMethods: 'all' }", function
 
     it("updateOneDeleted(conditions, update, options, callback) -> should update first deleted document", async function () {
         try {
-            const doc = await TestModel.updateOneDeleted({name: 'Luke Skywalker'}, {name: 'Luke Skywalker Test'}, {upsert: true});
+            const doc = await TestModel.updateOneDeleted({ name: 'Luke Skywalker' }, { name: 'Luke Skywalker Test' }, { upsert: true });
 
             expect(doc.upserted).to.be.undefined;
             expect(doc).to.be.mongoose_ok();
@@ -959,7 +959,7 @@ describe("check overridden static methods: { overrideMethods: 'all' }", function
 
     it("updateManyDeleted() -> should update deleted document", async function () {
         try {
-            const doc = await TestModel.updateManyDeleted({}, {name: 'Test 123'}, {multi: true});
+            const doc = await TestModel.updateManyDeleted({}, { name: 'Test 123' }, { multi: true });
 
             expect(doc).to.be.mongoose_ok();
             expect(doc).to.be.mongoose_count(2);
@@ -970,7 +970,7 @@ describe("check overridden static methods: { overrideMethods: 'all' }", function
 
     it("updateOneWithDeleted(conditions, update, options, callback) -> should update first deleted document", async function () {
         try {
-            const doc = await TestModel.updateOneWithDeleted({name: 'Luke Skywalker'}, {name: 'Luke Skywalker Test'}, {});
+            const doc = await TestModel.updateOneWithDeleted({ name: 'Luke Skywalker' }, { name: 'Luke Skywalker Test' }, {});
 
             expect(doc).to.be.mongoose_ok();
             expect(doc).to.be.mongoose_count(1);
@@ -981,7 +981,7 @@ describe("check overridden static methods: { overrideMethods: 'all' }", function
 
     it("updateOneWithDeleted(conditions, update, options, callback) -> should update first deleted document", async function () {
         try {
-            const doc = await TestModel.updateOneWithDeleted({name: 'Luke Skywalker'}, {name: 'Luke Skywalker Test'}, {upsert: true});
+            const doc = await TestModel.updateOneWithDeleted({ name: 'Luke Skywalker' }, { name: 'Luke Skywalker Test' }, { upsert: true });
 
             expect(doc.upserted).to.be.undefined;
 
@@ -994,7 +994,7 @@ describe("check overridden static methods: { overrideMethods: 'all' }", function
 
     it("updateManyWithDeleted() -> should update all document", async function () {
         try {
-            const doc = await TestModel.updateManyWithDeleted({}, {name: 'Test 654'}, {multi: true});
+            const doc = await TestModel.updateManyWithDeleted({}, { name: 'Test 654' }, { multi: true });
 
             expect(doc).to.be.mongoose_ok();
             expect(doc).to.be.mongoose_count(3);
@@ -1005,8 +1005,8 @@ describe("check overridden static methods: { overrideMethods: 'all' }", function
 });
 
 describe("check the existence of override static methods: { overrideMethods: true }", function () {
-    var TestSchema = new Schema({name: String}, {collection: 'mongoose_delete_test'});
-    TestSchema.plugin(mongoose_delete, {overrideMethods: true});
+    var TestSchema = new Schema({ name: String }, { collection: 'mongoose_delete_test' });
+    TestSchema.plugin(mongoose_delete, { overrideMethods: true });
     var TestModel = mongoose.model('Test6', TestSchema);
 
     it("count() -> method should exist", function () {
@@ -1107,8 +1107,8 @@ describe("check the existence of override static methods: { overrideMethods: tru
 });
 
 describe("check the existence of override static methods: { overrideMethods: ['testError', 'count', 'countDocuments', 'find', 'findOne', 'findOneAndUpdate', 'update', 'updateOne', 'updateMany'] }", function () {
-    var TestSchema = new Schema({name: String}, {collection: 'mongoose_delete_test'});
-    TestSchema.plugin(mongoose_delete, {overrideMethods: ['testError', 'count', 'countDocuments', 'find', 'findOne', 'findOneAndUpdate', 'update', 'updateOne', 'updateMany']});
+    var TestSchema = new Schema({ name: String }, { collection: 'mongoose_delete_test' });
+    TestSchema.plugin(mongoose_delete, { overrideMethods: ['testError', 'count', 'countDocuments', 'find', 'findOne', 'findOneAndUpdate', 'update', 'updateOne', 'updateMany'] });
     var TestModel = mongoose.model('Test7', TestSchema);
 
     it("testError() -> method should not exist", function () {
@@ -1213,8 +1213,8 @@ describe("check the existence of override static methods: { overrideMethods: ['t
 });
 
 describe("check the existence of override static methods: { overrideMethods: ['count', 'countDocuments', 'find'] }", function () {
-    var TestSchema = new Schema({name: String}, {collection: 'mongoose_delete_test'});
-    TestSchema.plugin(mongoose_delete, {overrideMethods: ['count', 'countDocuments', 'find']});
+    var TestSchema = new Schema({ name: String }, { collection: 'mongoose_delete_test' });
+    TestSchema.plugin(mongoose_delete, { overrideMethods: ['count', 'countDocuments', 'find'] });
     var TestModel = mongoose.model('Test8', TestSchema);
 
     it("testError() -> method should not exist", function () {
@@ -1321,17 +1321,17 @@ describe("check the existence of override static methods: { overrideMethods: ['c
 });
 
 describe("delete multiple documents", function () {
-    var TestSchema = new Schema({name: String, side: Number}, {collection: 'mongoose_delete_test'});
-    TestSchema.plugin(mongoose_delete, {overrideMethods: 'all', deletedAt: true, deletedBy: true});
+    var TestSchema = new Schema({ name: String, side: Number }, { collection: 'mongoose_delete_test' });
+    TestSchema.plugin(mongoose_delete, { overrideMethods: 'all', deletedAt: true, deletedBy: true });
     var TestModel = mongoose.model('Test14', TestSchema);
 
     beforeEach(async function () {
         await TestModel.create(
-          [
-              {name: 'Obi-Wan Kenobi', side: 0},
-              {name: 'Darth Vader', side: 1},
-              {name: 'Luke Skywalker', side: 0}
-          ]);
+            [
+                { name: 'Obi-Wan Kenobi', side: 0 },
+                { name: 'Darth Vader', side: 1 },
+                { name: 'Luke Skywalker', side: 0 }
+            ]);
     });
 
     afterEach(async function () {
@@ -1353,7 +1353,7 @@ describe("delete multiple documents", function () {
 
     it("delete(query) -> delete multiple documents with conditions", async function () {
         try {
-            const documents = await TestModel.delete({side: 0});
+            const documents = await TestModel.delete({ side: 0 });
 
             expect(documents).to.be.mongoose_ok();
             expect(documents).to.be.mongoose_count(2);
@@ -1364,7 +1364,7 @@ describe("delete multiple documents", function () {
 
     it("delete(query, deletedBy) -> delete multiple documents with conditions and user ID", async function () {
         try {
-            const documents = await TestModel.delete({side: 1}, userId);
+            const documents = await TestModel.delete({ side: 1 }, userId);
 
             expect(documents).to.be.mongoose_ok();
             expect(documents).to.be.mongoose_count(1);
@@ -1386,7 +1386,7 @@ describe("delete multiple documents", function () {
 
     it("delete(query).exec() -> delete multiple documents with conditions", async function () {
         try {
-            const documents = await TestModel.delete({side: 0}).exec();
+            const documents = await TestModel.delete({ side: 0 }).exec();
 
             expect(documents).to.be.mongoose_ok();
             expect(documents).to.be.mongoose_count(2);
@@ -1397,7 +1397,7 @@ describe("delete multiple documents", function () {
 
     it("delete(query, deletedBy).exec() -> delete multiple documents with conditions and user ID", async function () {
         try {
-            const documents = await TestModel.delete({side: 1}, userId).exec();
+            const documents = await TestModel.delete({ side: 1 }, userId).exec();
 
             expect(documents).to.be.mongoose_count(1);
             expect(documents).to.be.mongoose_ok();
@@ -1419,17 +1419,17 @@ describe("delete multiple documents", function () {
 });
 
 describe("restore multiple documents", function () {
-    var TestSchema = new Schema({name: String, side: Number}, {collection: 'mongoose_restore_test'});
-    TestSchema.plugin(mongoose_delete, {overrideMethods: 'all', deletedAt: true, deletedBy: true});
+    var TestSchema = new Schema({ name: String, side: Number }, { collection: 'mongoose_restore_test' });
+    TestSchema.plugin(mongoose_delete, { overrideMethods: 'all', deletedAt: true, deletedBy: true });
     var TestModel = mongoose.model('Test15', TestSchema);
 
     beforeEach(async function () {
         await TestModel.create(
-          [
-              {name: 'Obi-Wan Kenobi', side: 0},
-              {name: 'Darth Vader', side: 1, deleted: true},
-              {name: 'Luke Skywalker', side: 0, deleted: true, deletedAt: new Date()}
-          ]
+            [
+                { name: 'Obi-Wan Kenobi', side: 0 },
+                { name: 'Darth Vader', side: 1, deleted: true },
+                { name: 'Luke Skywalker', side: 0, deleted: true, deletedAt: new Date() }
+            ]
         );
     });
 
@@ -1450,7 +1450,7 @@ describe("restore multiple documents", function () {
 
     it("restore(query) -> restore multiple documents with conditions", async function () {
         try {
-            const documents = await TestModel.restore({side: 0});
+            const documents = await TestModel.restore({ side: 0 });
 
             expect(documents).to.be.mongoose_ok();
             expect(documents).to.be.mongoose_count(2);
@@ -1472,7 +1472,7 @@ describe("restore multiple documents", function () {
 
     it("restore(query).exec() -> restore multiple documents with conditions", async function () {
         try {
-            const documents = await TestModel.restore({side: 0}).exec();
+            const documents = await TestModel.restore({ side: 0 }).exec();
 
             expect(documents).to.be.mongoose_ok();
             expect(documents).to.be.mongoose_count(2);
@@ -1484,15 +1484,15 @@ describe("restore multiple documents", function () {
 });
 
 describe("model validation on delete (default): { validateBeforeDelete: true }", function () {
-    var TestSchema = new Schema({ name: {type: String, required: true}}, {collection: 'mongoose_restore_test'});
+    var TestSchema = new Schema({ name: { type: String, required: true } }, { collection: 'mongoose_restore_test' });
     TestSchema.plugin(mongoose_delete);
     var TestModel = mongoose.model('Test17', TestSchema);
 
     beforeEach(async function () {
         await TestModel.create(
-          [
-              {name: 'Luke Skywalker'}
-          ]);
+            [
+                { name: 'Luke Skywalker' }
+            ]);
     });
 
     afterEach(async function () {
@@ -1501,7 +1501,7 @@ describe("model validation on delete (default): { validateBeforeDelete: true }",
 
     it("delete() -> should raise ValidationError error", async function () {
         try {
-            const luke = await TestModel.findOne({name: 'Luke Skywalker'});
+            const luke = await TestModel.findOne({ name: 'Luke Skywalker' });
             luke.name = "";
             try {
                 await luke.delete();
@@ -1517,7 +1517,7 @@ describe("model validation on delete (default): { validateBeforeDelete: true }",
 
     it("delete() -> should not raise ValidationError error", async function () {
         try {
-            const luke = await TestModel.findOne({name: 'Luke Skywalker'});
+            const luke = await TestModel.findOne({ name: 'Luke Skywalker' });
             luke.name = "Test Name";
             try {
                 await luke.delete();
@@ -1532,16 +1532,16 @@ describe("model validation on delete (default): { validateBeforeDelete: true }",
 
 describe("model validation on delete: { validateBeforeDelete: false }", function () {
     var TestSchema = new Schema({
-        name: {type: String, required: true}
-    }, {collection: 'mongoose_restore_test'});
-    TestSchema.plugin(mongoose_delete, {validateBeforeDelete: false});
+        name: { type: String, required: true }
+    }, { collection: 'mongoose_restore_test' });
+    TestSchema.plugin(mongoose_delete, { validateBeforeDelete: false });
     var TestModel = mongoose.model('Test18', TestSchema);
 
     beforeEach(async function () {
         await TestModel.create(
-          [
-              {name: 'Luke Skywalker'}
-          ]);
+            [
+                { name: 'Luke Skywalker' }
+            ]);
     });
 
     afterEach(async function () {
@@ -1550,7 +1550,7 @@ describe("model validation on delete: { validateBeforeDelete: false }", function
 
     it("delete() -> should not raise ValidationError error", async function () {
         try {
-            const luke = await TestModel.findOne({name: 'Luke Skywalker'})
+            const luke = await TestModel.findOne({ name: 'Luke Skywalker' })
             luke.name = "";
             await luke.delete();
         } catch (err) {
@@ -1560,7 +1560,7 @@ describe("model validation on delete: { validateBeforeDelete: false }", function
 
     it("delete() -> should not raise ValidationError error", async function () {
         try {
-            const luke = await TestModel.findOne({name: 'Luke Skywalker'})
+            const luke = await TestModel.findOne({ name: 'Luke Skywalker' })
             luke.name = "Test Name";
             await luke.delete()
         } catch (err) {
@@ -1572,8 +1572,8 @@ describe("model validation on delete: { validateBeforeDelete: false }", function
 describe("mongoose_delete indexFields options", function () {
 
     it("all fields must have index: { indexFields: true }", function () {
-        var TestSchema = new Schema({name: String}, {collection: 'mongoose_delete_test_indexFields'});
-        TestSchema.plugin(mongoose_delete, {indexFields: true, deletedAt: true, deletedBy: true});
+        var TestSchema = new Schema({ name: String }, { collection: 'mongoose_delete_test_indexFields' });
+        TestSchema.plugin(mongoose_delete, { indexFields: true, deletedAt: true, deletedBy: true });
         var Test0 = mongoose.model('Test0_indexFields', TestSchema);
 
         expect(Test0.schema.paths.deleted._index).to.be.true;
@@ -1582,8 +1582,8 @@ describe("mongoose_delete indexFields options", function () {
     });
 
     it("all fields must have index: { indexFields: 'all' }", function () {
-        var TestSchema = new Schema({name: String}, {collection: 'mongoose_delete_test_indexFields'});
-        TestSchema.plugin(mongoose_delete, {indexFields: 'all', deletedAt: true, deletedBy: true});
+        var TestSchema = new Schema({ name: String }, { collection: 'mongoose_delete_test_indexFields' });
+        TestSchema.plugin(mongoose_delete, { indexFields: 'all', deletedAt: true, deletedBy: true });
         var Test0 = mongoose.model('Test1_indexFields', TestSchema);
 
         expect(Test0.schema.paths.deleted._index).to.be.true;
@@ -1592,8 +1592,8 @@ describe("mongoose_delete indexFields options", function () {
     });
 
     it("only 'deleted' field must have index: { indexFields: ['deleted'] }", function () {
-        var TestSchema = new Schema({name: String}, {collection: 'mongoose_delete_test_indexFields'});
-        TestSchema.plugin(mongoose_delete, {indexFields: ['deleted'], deletedAt: true, deletedBy: true});
+        var TestSchema = new Schema({ name: String }, { collection: 'mongoose_delete_test_indexFields' });
+        TestSchema.plugin(mongoose_delete, { indexFields: ['deleted'], deletedAt: true, deletedBy: true });
         var Test0 = mongoose.model('Test2_indexFields', TestSchema);
 
         expect(Test0.schema.paths.deletedAt._index).to.be.false;
@@ -1602,8 +1602,8 @@ describe("mongoose_delete indexFields options", function () {
     });
 
     it("only 'deletedAt' and 'deletedBy' fields must have index: { indexFields: ['deletedAt', 'deletedBy'] }", function () {
-        var TestSchema = new Schema({name: String}, {collection: 'mongoose_delete_test_indexFields'});
-        TestSchema.plugin(mongoose_delete, {indexFields: ['deletedAt', 'deletedBy'], deletedAt: true, deletedBy: true});
+        var TestSchema = new Schema({ name: String }, { collection: 'mongoose_delete_test_indexFields' });
+        TestSchema.plugin(mongoose_delete, { indexFields: ['deletedAt', 'deletedBy'], deletedAt: true, deletedBy: true });
         var Test0 = mongoose.model('Test3_indexFields', TestSchema);
 
         expect(Test0.schema.paths.deleted._index).to.be.false;
@@ -1613,20 +1613,20 @@ describe("mongoose_delete indexFields options", function () {
 });
 
 describe("check usage of $ne operator", function () {
-    var TestRawSchema = new Schema({name: String, deleted: Boolean}, {collection: 'mongoose_delete_test_ne'});
+    var TestRawSchema = new Schema({ name: String, deleted: Boolean }, { collection: 'mongoose_delete_test_ne' });
     var TestRawModel = mongoose.model('TestNeRaw', TestRawSchema);
 
-    var TestSchema = new Schema({name: String}, {collection: 'mongoose_delete_test_ne'});
-    TestSchema.plugin(mongoose_delete, {overrideMethods: 'all', use$neOperator: false});
+    var TestSchema = new Schema({ name: String }, { collection: 'mongoose_delete_test_ne' });
+    TestSchema.plugin(mongoose_delete, { overrideMethods: 'all', use$neOperator: false });
     var TestModel = mongoose.model('Test55', TestSchema);
 
     before(async function () {
         await TestRawModel.create(
-          [
-              {name: 'One'},
-              {name: 'Two', deleted: true},
-              {name: 'Three', deleted: false}
-          ]);
+            [
+                { name: 'One' },
+                { name: 'Two', deleted: true },
+                { name: 'Three', deleted: false }
+            ]);
     });
 
     after(async function () {
@@ -1660,11 +1660,11 @@ describe("aggregate methods: { overrideMethods: ['aggregate'] }", function () {
 
     beforeEach(async function () {
         await TestModel.create(
-          [
-              { name: 'Obi-Wan Kenobi', deleted: true },
-              { name: 'Darth Vader' },
-              { name: 'Luke Skywalker', deleted: true }
-          ]);
+            [
+                { name: 'Obi-Wan Kenobi', deleted: true },
+                { name: 'Darth Vader' },
+                { name: 'Luke Skywalker', deleted: true }
+            ]);
     });
 
     afterEach(async function () {
@@ -1673,7 +1673,7 @@ describe("aggregate methods: { overrideMethods: ['aggregate'] }", function () {
 
     it("aggregate([{$project : {name : 1} }]) -> should return 1 document", async function () {
         try {
-            const documents =  await TestModel.aggregate([{$project : { name : 1 }}]);
+            const documents = await TestModel.aggregate([{ $project: { name: 1 } }]);
             documents.length.should.equal(1);
         } catch (err) {
             should.not.exist(err);
@@ -1683,8 +1683,8 @@ describe("aggregate methods: { overrideMethods: ['aggregate'] }", function () {
     it("aggregate([{$project : {name : 1} }]) -> should return 1 document (pipeline)", async function () {
         try {
             const documents = await TestModel
-              .aggregate()
-              .project({ name : 1 });
+                .aggregate()
+                .project({ name: 1 });
 
             documents.length.should.equal(1);
         } catch (err) {
@@ -1696,7 +1696,7 @@ describe("aggregate methods: { overrideMethods: ['aggregate'] }", function () {
         try {
             const documents = await TestModel.aggregateDeleted([
                 {
-                    $project : { name : 1 }
+                    $project: { name: 1 }
                 }
             ]);
 
@@ -1709,8 +1709,8 @@ describe("aggregate methods: { overrideMethods: ['aggregate'] }", function () {
     it("aggregateDeleted([{$project : {name : 1} }]) -> should return deleted documents (pipeline)", async function () {
         try {
             const documents = await TestModel
-              .aggregateDeleted()
-              .project({ name : 1 });
+                .aggregateDeleted()
+                .project({ name: 1 });
 
             documents.length.should.equal(2);
         } catch (err) {
@@ -1722,7 +1722,7 @@ describe("aggregate methods: { overrideMethods: ['aggregate'] }", function () {
         try {
             const documents = await TestModel.aggregateWithDeleted([
                 {
-                    $project : { name : 1 }
+                    $project: { name: 1 }
                 }
             ]);
 
@@ -1735,8 +1735,8 @@ describe("aggregate methods: { overrideMethods: ['aggregate'] }", function () {
     it("aggregateWithDeleted([{$project : {name : 1} }]) -> should return deleted documents (pipeline)", async function () {
         try {
             const documents = await TestModel
-              .aggregateWithDeleted()
-              .project({ name : 1 });
+                .aggregateWithDeleted()
+                .project({ name: 1 });
 
             documents.length.should.equal(3);
         } catch (err) {
@@ -1746,20 +1746,20 @@ describe("aggregate methods: { overrideMethods: ['aggregate'] }", function () {
 });
 
 describe("aggregate methods & discriminator: { overrideMethods: ['aggregate'] }", function () {
-    var TestSchema = new Schema({ name: String }, { collection: 'mongoose_delete_test_aggregate', discriminatorKey:'kind' });
+    var TestSchema = new Schema({ name: String }, { collection: 'mongoose_delete_test_aggregate', discriminatorKey: 'kind' });
     TestSchema.plugin(mongoose_delete, { overrideMethods: ['aggregate'] });
 
     var TestModel = mongoose.model('Test6_Aggregate', TestSchema);
-    var DiscriminatorTestModel = TestModel.discriminator('DiscriminatorTest',new Schema({ age: Number }))
+    var DiscriminatorTestModel = TestModel.discriminator('DiscriminatorTest', new Schema({ age: Number }))
 
     beforeEach(async function () {
         await DiscriminatorTestModel.create(
-          [
-              { name: 'Lando Calrissian', age: 46, deleted: true },
-              { name: 'Han Solo', age: 44 },
-              { name: 'Jabba Desilijic Tiure', age:617, deleted: true },
-              { name: 'Boba Fett', age: 61 },
-          ]);
+            [
+                { name: 'Lando Calrissian', age: 46, deleted: true },
+                { name: 'Han Solo', age: 44 },
+                { name: 'Jabba Desilijic Tiure', age: 617, deleted: true },
+                { name: 'Boba Fett', age: 61 },
+            ]);
     });
 
     afterEach(async function () {
@@ -1769,8 +1769,8 @@ describe("aggregate methods & discriminator: { overrideMethods: ['aggregate'] }"
     it("aggregateWithDeleted([{ $match: { age:{ $gte: 50 } } }]) -> should return deleted documents from discriminator (pipeline)", async function () {
         try {
             var documents = await DiscriminatorTestModel
-              .aggregateWithDeleted([{ $match: { age:{ $gte: 50 } } }])
-              .project({ name : 1, age:1 });
+                .aggregateWithDeleted([{ $match: { age: { $gte: 50 } } }])
+                .project({ name: 1, age: 1 });
 
             documents.length.should.equal(2);
         } catch (err) {
@@ -1781,8 +1781,8 @@ describe("aggregate methods & discriminator: { overrideMethods: ['aggregate'] }"
     it("aggregate([{ $match: { age:{ $gte: 50 } } }]) -> should return non-deleted documents from discriminator (pipeline)", async function () {
         try {
             var documents = await DiscriminatorTestModel
-              .aggregate([{ $match: { age:{ $gte: 50 } } }])
-              .project({ name : 1, age:1 });
+                .aggregate([{ $match: { age: { $gte: 50 } } }])
+                .project({ name: 1, age: 1 });
 
             documents.length.should.equal(1);
         } catch (err) {
@@ -1793,8 +1793,8 @@ describe("aggregate methods & discriminator: { overrideMethods: ['aggregate'] }"
     it("aggregateDeleted([{ $match: { age:{ $gte: 50 } } }]) -> should return ONLY deleted documents from discriminator (pipeline)", async function () {
         try {
             var documents = await DiscriminatorTestModel
-              .aggregateDeleted([{ $match: { age:{ $gte: 50 } } }])
-              .project({ name : 1, age: 1 });
+                .aggregateDeleted([{ $match: { age: { $gte: 50 } } }])
+                .project({ name: 1, age: 1 });
 
             documents.length.should.equal(1);
         } catch (err) {
@@ -1805,49 +1805,49 @@ describe("aggregate methods & discriminator: { overrideMethods: ['aggregate'] }"
 
 describe("mongoose_delete find method overridden with populate", function () {
     var TestPopulateSchema1 = new Schema(
-      { name: String },
-      { collection: 'TestPopulate1' }
+        { name: String },
+        { collection: 'TestPopulate1' }
     );
     TestPopulateSchema1.plugin(mongoose_delete, { overrideMethods: 'all' });
     var TestPopulate1 = mongoose.model('TestPopulate1', TestPopulateSchema1);
 
     var TestPopulateSchema2 = new Schema(
-      {
-          name: String,
-          test: { type: mongoose.Types.ObjectId, ref: 'TestPopulate1' }
-      },
-      { collection: 'TestPopulate2' }
+        {
+            name: String,
+            test: { type: mongoose.Types.ObjectId, ref: 'TestPopulate1' }
+        },
+        { collection: 'TestPopulate2' }
     );
     TestPopulateSchema2.plugin(mongoose_delete, { overrideMethods: 'all' });
     var TestPopulate2 = mongoose.model('TestPopulate2', TestPopulateSchema2);
 
     beforeEach(async function () {
         await TestPopulate1.create(
-          [
-              { name: 'Obi-Wan Kenobi', _id: getNewObjectId("53da93b16b4a6670076b16b1"), deleted: true },
-              { name: 'Darth Vader', _id: getNewObjectId("53da93b16b4a6670076b16b2") },
-              { name: 'Luke Skywalker', _id: getNewObjectId("53da93b16b4a6670076b16b3"), deleted: true }
-          ]
+            [
+                { name: 'Obi-Wan Kenobi', _id: getNewObjectId("53da93b16b4a6670076b16b1"), deleted: true },
+                { name: 'Darth Vader', _id: getNewObjectId("53da93b16b4a6670076b16b2") },
+                { name: 'Luke Skywalker', _id: getNewObjectId("53da93b16b4a6670076b16b3"), deleted: true }
+            ]
         );
         await TestPopulate2.create(
-          [
-              { name: 'Student 1', test: getNewObjectId("53da93b16b4a6670076b16b1") },
-              { name: 'Student 2', test: getNewObjectId("53da93b16b4a6670076b16b2") },
-              { name: 'Student 3', test: getNewObjectId("53da93b16b4a6670076b16b3"), deleted: true }
-          ]
+            [
+                { name: 'Student 1', test: getNewObjectId("53da93b16b4a6670076b16b1") },
+                { name: 'Student 2', test: getNewObjectId("53da93b16b4a6670076b16b2") },
+                { name: 'Student 3', test: getNewObjectId("53da93b16b4a6670076b16b3"), deleted: true }
+            ]
         )
     });
 
     afterEach(async function () {
-       await  mongoose.connection.db.dropCollection("TestPopulate1");
-       await  mongoose.connection.db.dropCollection("TestPopulate2");
+        await mongoose.connection.db.dropCollection("TestPopulate1");
+        await mongoose.connection.db.dropCollection("TestPopulate2");
     });
 
     it("populate() -> should not return deleted sub-document", async function () {
         try {
             const document = await TestPopulate2
-              .findOne({ name: 'Student 1' })
-              .populate({ path: 'test' });
+                .findOne({ name: 'Student 1' })
+                .populate({ path: 'test' });
 
             expect(document.test).to.be.null;
         } catch (err) {
@@ -1858,8 +1858,8 @@ describe("mongoose_delete find method overridden with populate", function () {
     it("populate() -> should return the deleted sub-document using { withDeleted: true }", async function () {
         try {
             const document = await TestPopulate2
-              .findOne({ name: 'Student 1' })
-              .populate({ path: 'test', options: { withDeleted: true } });
+                .findOne({ name: 'Student 1' })
+                .populate({ path: 'test', options: { withDeleted: true } });
 
             expect(document.test).not.to.be.null;
             document.test.deleted.should.equal(true);
@@ -1871,12 +1871,12 @@ describe("mongoose_delete find method overridden with populate", function () {
     it("populate() -> should not return deleted documents and sub-documents", async function () {
         try {
             const documents = await TestPopulate2
-              .find({ })
-              .populate({ path: 'test' })
-              .exec();
+                .find({})
+                .populate({ path: 'test' })
+                .exec();
 
-            var student1 = documents.findIndex(function(i) { return i.name === "Student 1" });
-            var student2 = documents.findIndex(function(i) { return i.name === "Student 2" });
+            var student1 = documents.findIndex(function (i) { return i.name === "Student 1" });
+            var student2 = documents.findIndex(function (i) { return i.name === "Student 2" });
 
             documents.length.should.equal(2)
             expect(documents[student1].test).to.be.null;
@@ -1889,15 +1889,15 @@ describe("mongoose_delete find method overridden with populate", function () {
     it("populate() -> should return deleted documents and sub-documents", async function () {
         try {
             const documents = await TestPopulate2
-              .findWithDeleted()
-              .populate({ path: 'test', options: { withDeleted: true } })
-              .exec();
+                .findWithDeleted()
+                .populate({ path: 'test', options: { withDeleted: true } })
+                .exec();
 
             documents.length.should.equal(3);
 
-            var student1 = documents.findIndex(function(i) { return i.name === "Student 1" });
-            var student2 = documents.findIndex(function(i) { return i.name === "Student 2" });
-            var student3 = documents.findIndex(function(i) { return i.name === "Student 3" });
+            var student1 = documents.findIndex(function (i) { return i.name === "Student 1" });
+            var student2 = documents.findIndex(function (i) { return i.name === "Student 2" });
+            var student3 = documents.findIndex(function (i) { return i.name === "Student 3" });
 
             expect(documents[student1].test).not.to.be.null;
             expect(documents[student2].test).not.to.be.null;
@@ -1917,9 +1917,9 @@ describe("model validation on restore: { validateBeforeRestore: false }", functi
 
     beforeEach(async function () {
         await TestModel.create(
-          [
-              { name: 'Luke Skywalker' }
-          ]
+            [
+                { name: 'Luke Skywalker' }
+            ]
         );
     });
 
@@ -1947,9 +1947,9 @@ describe("model validation on restore (default): { validateBeforeRestore: true }
 
     beforeEach(async function () {
         await TestModel.create(
-          [
-              { name: 'Luke Skywalker' }
-          ]
+            [
+                { name: 'Luke Skywalker' }
+            ]
         );
     });
 
@@ -1974,3 +1974,73 @@ describe("model validation on restore (default): { validateBeforeRestore: true }
     });
 });
 
+describe("mongoose_delete plugin using option: indexFieldMapping", function () {
+    var Test122Schema = new Schema({ name: String }, { collection: 'mongoose_delete_test122'});
+    Test122Schema.plugin(mongoose_delete, { indexFieldMapping: { deleted: "isDeleted", deletedAt: "deletedAt", deletedBy: "deletedBy" } });
+    var Test122 = mongoose.model('Test122', Test122Schema);
+
+    var puffy1 = null;
+    var puffy2 = null;
+
+    beforeEach(async function () {
+        const created = await Test122.create(
+            [
+                { name: 'Puffy1' },
+                { name: 'Puffy2' },
+                { name: 'Puffy3', isDeleted: true }
+            ]
+        );
+
+        puffy1 = { ...created[0]._doc };
+        puffy2 = { ...created[1]._doc };
+    });
+
+    afterEach(async function () {
+        await mongoose.connection.db.dropCollection("mongoose_delete_test122");
+    });
+
+    it("delete() -> should set isDeleted:true", async function () {
+        try {
+            const puffy = await Test122.findOne({ name: 'Puffy1' });
+            const success = await puffy.delete();
+            success.isDeleted.should.equal(true);
+        } catch (err) {
+            should.not.exist(err);
+        }
+    });
+
+    it("delete() -> should not save 'deletedAt' value", async function () {
+        try {
+            const puffy = await Test122.findOne({ name: 'Puffy1' });
+            const success = await puffy.delete();
+            should.not.exist(success.deletedAt);
+        } catch (err) {
+            should.not.exist(err);
+        }
+    });
+
+    it("deleteById() -> should set isDeleted:true and not save 'deletedAt'", async function () {
+        try {
+            const documents = await Test122.deleteById(puffy2._id)
+            expect(documents).to.be.mongoose_ok();
+            expect(documents).to.be.mongoose_count(1);
+
+            const doc = await Test122.findOne({ name: 'Puffy2' });
+            doc.isDeleted.should.equal(true);
+            should.not.exist(doc.deletedAt);
+        } catch (err) {
+            should.not.exist(err);
+        }
+    });
+
+    it("restore() -> should set isDeleted:false", async function () {
+        try {
+            const puffy = await Test122.findOne({ name: 'Puffy3' });
+            const success = await puffy.restore();
+
+            success.isDeleted.should.equal(false);
+        } catch (err) {
+            should.not.exist(err);
+        }
+    });
+});
