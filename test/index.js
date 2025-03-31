@@ -4,20 +4,22 @@ var chai = require('chai'),
     mongoose = require('mongoose'),
     Schema = mongoose.Schema;
 
+require("dotenv").config()
+
 var mongoose_delete = require('../');
 
 var mongooseMajorVersion = +mongoose.version[0]; // 4, 5, 6...
 
 console.log(`> mongoose: ${mongooseMajorVersion}`);
 
-if (mongooseMajorVersion < 7) {
-    mongoose.set('strictQuery', true);
-}
+// if (mongooseMajorVersion < 7) {
+//     mongoose.set('strictQuery', true);
+// }
 
-if (mongooseMajorVersion === 5) {
-    mongoose.set('useCreateIndex', true);
-    mongoose.set('useFindAndModify', false);
-}
+// if (mongooseMajorVersion === 5) {
+//     mongoose.set('useCreateIndex', true);
+//     mongoose.set('useFindAndModify', false);
+// }
 
 function getNewObjectId(value) {
     if (mongooseMajorVersion > 6) {
@@ -46,7 +48,7 @@ chai.use(function (_chai, utils) {
 });
 
 before(async function () {
-    await mongoose.connect(process.env.MONGOOSE_TEST_URI || 'mongodb://localhost/test', { useNewUrlParser: true, useUnifiedTopology: true });
+    await mongoose.connect(process.env.MONGOOSE_TEST_URI);
 });
 
 after(async function () {
@@ -570,7 +572,7 @@ describe("check not overridden static methods", function () {
 
     it("count() -> should return 3 documents", async function () {
         try {
-            const count = await TestModel.count();
+            const count = await TestModel.countDocuments();
             count.should.equal(3);
         } catch (err) {
             should.not.exist(err);
@@ -1010,7 +1012,7 @@ describe("check the existence of override static methods: { overrideMethods: tru
     var TestModel = mongoose.model('Test6', TestSchema);
 
     it("count() -> method should exist", function () {
-        expect(TestModel.count).to.exist;
+        expect(TestModel.countDocuments).to.exist;
     });
 
     it("countDeleted() -> method should exist", function () {
@@ -1115,7 +1117,7 @@ describe("check the existence of override static methods: { overrideMethods: ['t
         expect(TestModel.testError).to.not.exist;
     });
 
-    it("count() -> method should exist", function () {
+    it("countDocuments() -> method should exist", function () {
         expect(TestModel.count).to.exist;
     });
 
@@ -1212,7 +1214,7 @@ describe("check the existence of override static methods: { overrideMethods: ['t
     });
 });
 
-describe("check the existence of override static methods: { overrideMethods: ['count', 'countDocuments', 'find'] }", function () {
+describe("check the existence of override static methods: { overrideMethods: ['countDocuments', 'find'] }", function () {
     var TestSchema = new Schema({ name: String }, { collection: 'mongoose_delete_test' });
     TestSchema.plugin(mongoose_delete, { overrideMethods: ['count', 'countDocuments', 'find'] });
     var TestModel = mongoose.model('Test8', TestSchema);
@@ -1221,8 +1223,8 @@ describe("check the existence of override static methods: { overrideMethods: ['c
         expect(TestModel.testError).to.not.exist;
     });
 
-    it("count() -> method should exist", function () {
-        expect(TestModel.count).to.exist;
+    it("countDocuments() -> method should exist", function () {
+        expect(TestModel.countDocuments).to.exist;
     });
 
     it("countDeleted() -> method should exist", function () {
@@ -1975,7 +1977,7 @@ describe("model validation on restore (default): { validateBeforeRestore: true }
 });
 
 describe("mongoose_delete plugin using option: indexFieldMapping", function () {
-    var Test122Schema = new Schema({ name: String }, { collection: 'mongoose_delete_test122'});
+    var Test122Schema = new Schema({ name: String }, { collection: 'mongoose_delete_test122' });
     Test122Schema.plugin(mongoose_delete, { indexFieldMapping: { deleted: "isDeleted", deletedAt: "deletedAt", deletedBy: "deletedBy" } });
     var Test122 = mongoose.model('Test122', Test122Schema);
 
