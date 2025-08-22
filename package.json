@@ -1,6 +1,6 @@
 {
   "name": "@ilechuks73/mongoose-soft-delete",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Mongoose soft delete plugin with indexed path mapping",
   "author": "Ilechukwu Joshua <ilechuks73@gmail.com>",
   "main": "index.js",
